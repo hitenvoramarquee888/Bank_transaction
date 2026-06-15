@@ -1,0 +1,69 @@
+<%- include('../partials/header', {
+    pageCss: 'beneficiaries.css'
+}) %>
+    <div id="app">
+        <%- include('../partials/sidebar') %>
+            <main class="main">
+
+                <!-- BENEFICIARIES  -->
+                <div class="page active" id="page-beneficiaries">
+                    <div class="page-header">
+                        <div class="page-title">Beneficiaries</div>
+                        <div class="page-sub">Manage your saved payees</div>
+                        <div class="page-actions">
+                            <button class="btn btn-primary" onclick="openAddBen()">
+                                + Add Beneficiary
+                            </button>
+                        </div>
+                    </div>
+                    <div style="max-width: 600px; margin-bottom: 16px">
+                        <div class="card" style="
+                padding: 16px 20px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+              ">
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="var(--text-muted)">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div style="font-size: 13px; color: var(--text-dim)">
+                                Beneficiaries you save can be quickly selected in the Transfer
+                                page.
+                            </div>
+                        </div>
+                    </div>
+                    <div id="beneficiary-list" class="beneficiary-list" style="max-width: 600px">
+                        <div class="loading-overlay">
+                            <div class="spinner"></div>
+                            Loading...
+                        </div>
+                    </div>
+                </div>
+
+                <!--  ADD BENEFICIARY MODAL  -->
+                <div class="modal-bg" id="add-ben-modal">
+                    <div class="modal">
+                        <button class="modal-close" onclick="closeModal('add-ben-modal')">
+                            ✕
+                        </button>
+                        <div class="modal-title">Add Beneficiary</div>
+                        <div style="display: flex; flex-direction: column; gap: 14px">
+                            <div class="form-group">
+                                <label>Beneficiary Name</label>
+                                <input type="text" id="ben-name" placeholder="e.g. Mom, Office, Friend" />
+                            </div>
+                            <div class="form-group">
+                                <label>Account Number</label>
+                                <input type="number" id="ben-accno" placeholder="Account number" />
+                            </div>
+                            <button class="btn btn-primary" onclick="doAddBen()"
+                                style="justify-content: center; margin-top: 4px">
+                                Add Beneficiary
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+    </div>
+    <%- include('../partials/footer') %>

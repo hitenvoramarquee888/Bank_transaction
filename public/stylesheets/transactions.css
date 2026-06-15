@@ -1,0 +1,107 @@
+.table-wrap {
+  overflow-x: auto;
+  margin-top: 4px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  
+}
+
+th {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  padding: 10px 14px;
+  
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  text-align: center;
+}
+
+td {
+  padding: 14px 14px;
+  font-size: 14px;
+  text-align: center;
+  border-bottom: 1px solid rgba(37, 42, 61, 0.6);
+  vertical-align: middle;
+}
+
+tr:hover td {
+  background: rgba(201, 168, 76, 0.03);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-credit {
+  background: rgba(61, 214, 140, 0.12);
+  color: var(--green);
+}
+
+.badge-debit {
+  background: rgba(240, 96, 96, 0.12);
+  color: var(--red);
+}
+
+.amount {
+  font-family: "DM Mono", monospace;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.amount-credit { color: var(--green); }
+.amount-debit { color: var(--red); }
+
+.radio-group {
+  display: flex;
+  gap: 10px;
+}
+
+.radio-opt {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-dim);
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.radio-opt:hover {
+  border-color: var(--gold);
+  color: var(--text);
+}
+
+.radio-opt.selected {
+  border-color: var(--gold);
+  background: var(--gold-dim);
+  color: var(--gold);
+}
+
+.radio-opt.selected.debit {
+  border-color: var(--red);
+  background: rgba(240, 96, 96, 0.1);
+  color: var(--red);
+}

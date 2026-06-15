@@ -1,0 +1,106 @@
+<%- include('../partials/header', {
+    pageCss: 'transactions.css'
+}) %>
+    <div id="app">
+        <%- include('../partials/sidebar') %>
+            <main class="main">
+
+                <!-- TRANSACTION -->
+                <div class="page active" id="page-transaction">
+                    <div class="page-header">
+                        <div class="page-title">New Transaction</div>
+                        <div class="page-sub">Deposit or withdraw from your account</div>
+                    </div>
+                    <div class="" style="
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 20px;
+              max-width: 800px;
+            ">
+                        <div class="card">
+                            <div class="section-title" style="margin-bottom: 20px">
+                                Transaction Details
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 16px">
+                                <div class="form-group">
+                                    <label>Transaction Type</label>
+                                    <div class="radio-group">
+                                        <div class="radio-opt selected" id="opt-credit" onclick="setMethod('credit')">
+                                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24"
+                                                stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 4v16m8-8H4" />
+                                            </svg>
+                                            Credit
+                                        </div>
+                                        <div class="radio-opt" id="opt-debit" onclick="setMethod('debit')">
+                                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24"
+                                                stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M20 12H4" />
+                                            </svg>
+                                            Debit
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Amount (₹)</label>
+                                    <input type="number" id="txn-amount" placeholder="0.00" min="1" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Account Holder ID</label>
+                                    <input type="text" id="txn-holder" placeholder="Auto-filled from session" readonly
+                                        style="opacity: 0.6" />
+                                </div>
+                                <button class="btn btn-primary" onclick="doTransaction()"
+                                    style="justify-content: center; margin-top: 4px">
+                                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Submit Transaction
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card" style="background: linear-gradient(135deg,var(--surface2),var(--surface));">
+                            <div class="section-title" style="margin-bottom: 16px; color: var(--text)">
+                                Balance Info
+                            </div>
+
+                            <div style="font-family: &quot;DM Mono&quot;, monospace;font-size: 36px; font-weight: 500;color: var(--gold);margin-bottom: 6px;"
+                                id="txn-balance-display">₹0
+                            </div>
+                            <div style="font-size: 13px; color: var(--text-muted)">
+                                Available Balance
+                            </div>
+                            <div class="divider"></div>
+                            <div style="font-size: 13px;color: var(--text-dim);line-height: 1.8;">
+                                <div><i class="fa-solid fa-arrows-to-dot fa-flip-horizontal"></i></i> Credits increase your balance</div>
+                                <div><i class="fa-solid fa-arrows-to-dot"></i> Debits reduce your balance</div>
+                                <div><i class="fa-solid fa-arrows-to-dot"></i> A confirmation email is sent after each
+                                    transaction</div>
+
+                            </div>
+
+
+                        </div>
+                        <div class="recent-transactions-card">
+                            <h3>Recent Transactions</h3>
+                            <table>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Method</th>
+                                    <th>Amount</th>
+                                </tr>
+
+                                <tbody id="recent-5-tbody"></tbody>
+                            </table>
+                        </div>
+
+                    </div>
+
+
+                </div>
+            </main>
+    </div>
+<%- include('../partials/footer') %>

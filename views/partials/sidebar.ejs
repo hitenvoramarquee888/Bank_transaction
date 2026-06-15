@@ -1,0 +1,79 @@
+<button class="sidebar-toggle" onclick="toggleSidebar()">
+  ☰
+</button>
+<aside class="sidebar" id="sidebar">
+  <button class="sidebar-close" onclick="closeSidebar()">
+    ✕
+  </button>
+  <div class="logo">
+    <div class="logo-mark">N</div>
+    <span class="logo-text">NovaPay</span>
+  </div>
+  <nav>
+    <div class="nav-section">Overview</div>
+    <a class="nav-item <%= page === 'dashboard' ? 'active' : '' %>" href="/dashboard">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+      Dashboard
+    </a>
+    <div class="nav-section">Transactions</div>
+    <a class="nav-item <%= page === 'transaction' ? 'active' : '' %>" href="/transaction">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+      </svg>
+      New Transaction
+    </a>
+    <a class="nav-item <%= page === 'transfer' ? 'active' : '' %>" href="/transfer">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+          d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+      </svg>
+      Transfer
+    </a>
+    <a class="nav-item <%= page === 'history' ? 'active' : '' %>" href="/history">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+      History
+    </a>
+    <div class="nav-section">Account</div>
+    <a class="nav-item <%= page === 'admin' ? 'active' : '' %>" href="/admin" id="admin-nav-link" style="display:none;">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 10-8 0v4h8z" />
+      </svg>
+      Admin Panel
+    </a>
+    <a class="nav-item <%= page === 'beneficiaries' ? 'active' : '' %>" href="/beneficiaries">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+      Beneficiaries
+    </a>
+    <a class="nav-item <%= page === 'profile' ? 'active' : '' %>" href="/profile">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+      </svg>
+      Profile
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-chip">
+      <div class="avatar" id="sidebar-avatar">J</div>
+      <div class="user-info">
+        <div class="user-name" id="sidebar-name">Loading...</div>
+        <div class="user-role" id="sidebar-role">user</div>
+      </div>
+    </div>
+    <button class="btn btn-outline btn-sm" style="width: 100%; justify-content: center; margin-top: 8px"
+      onclick="logout()">
+      Sign Out
+    </button>
+  </div>
+</aside>
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>

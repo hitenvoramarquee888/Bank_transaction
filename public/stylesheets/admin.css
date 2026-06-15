@@ -1,0 +1,40 @@
+.admin-search-row {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-search-row .input {
+  flex: 1;
+}
+
+#admin-users-table th,
+#admin-users-table td {
+  padding: 12px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border, #e5e5e5);
+}
+
+.status-deleted {
+  color: #f06060;
+  font-weight: 600;
+}
+
+.status-active {
+  color: #2ecc71;
+  font-weight: 600;
+}
+
+.admin-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 24px;
+}
+
+@media (max-width: 700px) {
+  .admin-search-row {
+    flex-direction: column;
+  }
+  .admin-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,48 @@
+.beneficiary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.beneficiary-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.beneficiary-item:hover {
+  border-color: var(--gold);
+  background: var(--gold-dim);
+}
+
+.beneficiary-item .avatar {
+  background: linear-gradient(135deg, var(--blue), #2560cc);
+}
+
+.ben-info {
+  flex: 1;
+}
+
+.ben-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ben-acc {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: "DM Mono", monospace;
+}
+
+.select-ben-btn {
+  font-size: 12px;
+  color: var(--gold);
+  font-weight: 600;
+}

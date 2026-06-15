@@ -1,0 +1,274 @@
+.sidebar-toggle {
+  display: none;
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  z-index: 300;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 42px;
+  height: 42px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  padding: 0;
+} 
+
+.sidebar-toggle span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+.sidebar-toggle.hidden{
+  display : none;
+}
+
+/* ---- SIDEBAR OVERLAY ---- */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 99;
+}
+
+.sidebar-overlay.visible {
+  display: block;
+}
+
+
+/* ---- CLOSE BUTTON INSIDE SIDEBAR ---- */
+.sidebar-close {
+  display: none;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  line-height: 1;
+}
+
+.sidebar-close:hover {
+  color: var(--text);
+  background: var(--surface2);
+}
+
+
+/* ---- RESPONSIVE CLASSES (used by JS to fix inline grids) ---- */
+.responsive-1col {
+  grid-template-columns: 1fr !important;
+}
+.profile-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+
+/* ---- 900px BREAKPOINT ---- */
+@media (max-width: 900px) {
+
+  /* --- Sidebar --- */
+  .sidebar-toggle {
+    display: block;
+  }
+
+  .sidebar-close {
+    display: block;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-size: 24px;
+    cursor: pointer;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+   
+    z-index: 200;
+  }
+
+  /* --- Main layout --- */
+  .main {
+    margin-left: 0 !important;
+    padding: 24px 16px;
+    padding-top: 68px !important;
+  }
+
+  .page-header {
+    padding-right: 0;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .page-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* --- Stats grid: 2 cols on tablet --- */
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* --- Profile section: stack to 1 col --- */
+  .profile-section {
+    grid-template-columns: 1fr;
+  }
+
+  /* --- Forms: single column --- */
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* --- Bank card: full width --- */
+  .bank-card {
+    max-width: 100%;
+  }
+
+  /* --- Inline style grids (dashboard 1fr 1.4fr, transfer, etc.) --- */
+  .main > .page > div[style*="grid-template-columns"],
+  .main div[style*="1fr 1.4fr"],
+  .main div[style*="1fr 1fr"],
+  .main div[style*="max-width: 800px"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Keep quick-action 2-col buttons grid inside cards intact */
+  .card div[style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* --- TABLE: horizontal scroll, show ALL columns --- */
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 600px; /* wide enough for all 8 columns */
+  }
+
+  th, td {
+    padding: 10px 8px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  /* --- Beneficiary list --- */
+  .beneficiary-item {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  /* --- Cards --- */
+  .card {
+    padding: 18px 16px;
+  }
+
+  /* --- Pagination wrap --- */
+  .pagination {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}
+
+/* ---- 500px BREAKPOINT ---- */
+@media (max-width: 500px) {
+   .card div[style*="grid-template-columns: 1fr 1fr"] {
+  grid-template-columns: 1fr !important;
+   }
+   .page{
+    width : auto;
+   }
+  /* --- Layout --- */
+  .main {
+    padding: 14px 10px;
+    padding-top: 66px !important;
+  }
+
+  .card {
+    padding: 16px 12px;
+  }
+
+
+  /* --- Stats: 1 col on phones --- */
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .stat-value {
+    font-size: 22px;
+  }
+
+  .page-title {
+    font-size: 20px;
+  }
+
+  /* --- Auth box --- */
+  .auth-box {
+    padding: 24px 16px;
+    margin: 12px;
+  }
+
+  /* --- Table: still scroll, still show ALL columns --- */
+  table {
+    min-width: 750px;
+  }
+
+  th, td {
+    padding: 8px 6px;
+    font-size: 11px;
+  }
+
+  /* --- Transfer toggle buttons --- */
+  .transfer-toggle-btn {
+    font-size: 12px;
+    padding: 8px 6px;
+  }
+
+  /* --- Bank card number smaller --- */
+  .bank-card-number {
+    font-size: 14px;
+    letter-spacing: 2px;
+  }
+
+  .bank-card-balance {
+    font-size: 18px;
+  }
+
+  /* --- Profile detail rows --- */
+  .detail-row {
+    display: flex;
+    gap: 4px;
+  }
+  .delete-btn {
+    width: 100%;
+  }
+
+  .detail-val {
+    font-size: 12px;
+  }
+}

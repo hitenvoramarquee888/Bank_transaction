@@ -1,0 +1,132 @@
+<%- include('../partials/header', {
+    pageCss: 'login.css'
+}) %>
+    <!-- auth -->
+    <div id="auth-screen">
+        <div class="auth-box">
+            <div class="auth-logo">
+                <div class="logo-mark">N</div>
+                <span style="
+              font-family: &quot;Playfair Display&quot;, serif;
+              font-size: 24px;
+              font-weight: 600;
+              color: var(--gold);
+            ">NovaPay</span>
+            </div>
+            <div class="auth-title">Welcome Back</div>
+            <div class="auth-sub">Sign in to your banking portal</div>
+            <div class="auth-tab">
+                <button class="auth-tab-btn active" onclick="switchAuth('login')">
+                    Sign In
+                </button>
+                <button class="auth-tab-btn" onclick="switchAuth('register')">
+                    Register
+                </button>
+                <button class="auth-tab-btn" onclick="switchAuth('forgot')">
+                    Forgot
+                </button>
+            </div>
+
+            <!-- login -->
+            <form class="auth-form active" id="login-form" onsubmit="doLogin(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="text" id="login-email" placeholder="email@example.com" required />
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="login-pass" placeholder="••••••••" required />
+                    <div class="forgot-link" onclick="switchAuth('forgot')">
+                        Forgot password?
+                    </div>
+                </div>
+                <button class="btn btn-primary" type="submit" style="margin-top: 4px; justify-content: center">
+                    Sign In
+                </button>
+                <div style="
+              font-size: 12px;
+              color: var(--text-muted);
+              text-align: center;
+            ">
+                    Demo: use any credentials — connect to your backend API
+                </div>
+            </form>
+
+            <!-- REGISTER -->
+            <form class="auth-form" id="register-form" onsubmit="doRegister(event)">
+                <div class="form-grid" style="grid-template-rows">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="reg-name" placeholder="John Doe" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="reg-email" placeholder="john@email.com" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="number" id="reg-phone" placeholder="9876543210" required />
+                    </div>
+                    <div class="form-group full">
+                        <label>Password</label>
+                        <input type="password" id="reg-pass" placeholder="Min 8 chars, upper/lower/num/special"
+                            required />
+                    </div>
+                </div>
+                <button class="btn btn-primary" type="submit" style="justify-content: center">
+                    Create Account
+                </button>
+            </form>
+
+            <!-- FORGOT -->
+            <div class="auth-form" id="forgot-form">
+                <div id="forgot-step1">
+                    <div class="steps">
+                        <div class="step active">1. Phone</div>
+                        <div class="step" id="s2">2. OTP</div>
+                        <div class="step" id="s3">3. Reset</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Registered Phone</label>
+                        <input type="number" id="fp-phone" placeholder="9876543210" />
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 6px"
+                        onclick="sendOtp()">
+                        Send OTP
+                    </button>
+                </div>
+                <div id="forgot-step2" style="display: none">
+                    <div class="steps">
+                        <div class="step done">1. Phone</div>
+                        <div class="step active">2. OTP</div>
+                        <div class="step" id="s3b">3. Reset</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Enter OTP</label>
+                        <input type="number" id="fp-otp" placeholder="4-digit OTP" />
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 6px"
+                        onclick="verifyOtp()">
+                        Verify OTP
+                    </button>
+                </div>
+                <div id="forgot-step3" style="display: none">
+                    <div class="steps">
+                        <div class="step done">1. Phone</div>
+                        <div class="step done">2. OTP</div>
+                        <div class="step active">3. Reset</div>
+                    </div>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" id="fp-newpass" placeholder="New secure password" />
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 6px"
+                        onclick="resetPass()">
+                        Reset Password
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <%- include('../partials/footer') %>
