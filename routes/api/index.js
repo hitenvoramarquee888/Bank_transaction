@@ -2,24 +2,24 @@ const router = require('express').Router();
 const userController = require('../../controller/user');
 const transactionController = require('../../controller/bank');
 const middleware = require('../../middleware/auth');
-
+const upload = require('../../utils/multer');
 
 
 // user routes
 router.post('/register', userController.register);
 router.get('/getusers', userController.getusers);
-
-// admin routes
-router.get('/admin/users', middleware.authcheck, middleware.isAdmin, userController.getAllUsersAdmin);
-router.get('/admin/users/deleted', middleware.authcheck, middleware.isAdmin, userController.getDeletedUsers);
-router.get('/admin/users/:id', middleware.authcheck, middleware.isAdmin, userController.getUserFullDetails);
-
 router.patch('/:updateid', middleware.authcheck,userController.updateProfile);
 router.post('/login', userController.login);
 router.post('/forgotpassword', userController.forgotpassword);
 router.post('/verifyotp', userController.verifyotp);
 router.post('/resetpassword', userController.resetpassword);
 router.delete('/user/delete', middleware.authcheck, userController.deleteAccount);
+
+
+// admin routes
+router.get('/admin/users', middleware.authcheck, middleware.isAdmin, userController.getAllUsersAdmin);
+router.get('/admin/users/deleted', middleware.authcheck, middleware.isAdmin, userController.getDeletedUsers);
+router.get('/admin/users/:id', middleware.authcheck, middleware.isAdmin, userController.getUserFullDetails);
 
 // transaction routes
 router.post('/transaction/transaction', middleware.authcheck, transactionController.transaction);

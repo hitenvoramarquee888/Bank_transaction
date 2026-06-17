@@ -12,20 +12,30 @@
                     <!-- Search Bar -->
                     <div class="card" style="margin-bottom: 20px;">
                         <div class="admin-search-row">
-                            <input type="text" id="admin-search-input" class="input"
-                                placeholder="Search by name, email, phone, or account number...">
-                            <select id="admin-search-scope" class="input" style="max-width: 180px;">
-                                <option value="active">Active Users</option>
-                                <option value="deleted">Deleted Users</option>
-                            </select>
-                            <button class="btn btn-primary" onclick="adminSearchUsers()"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+
+                            <div class="search-wrapper">
+                                <input type="text" id="admin-search-input" class="input"
+                                    placeholder="Search by name, email, phone or account number...">
+
+                                <button type="button" class="clear-btn" onclick="inputValueRemove()">
+                                    <i class="fa-solid fa-xmark" style="color: rgb(159, 168, 183);"></i>
+                                </button>
+                            </div>
+
+                            <button class="btn btn-primary" onclick="adminSearchUsers()"><i
+                                    class="fa-solid fa-magnifying-glass"></i> Search</button>
                         </div>
+                        <select id="admin-search-scope" class="input admin-search-scope" style="max-width: 180px;">
+
+                            <option value="active">Active Users</option>
+                            <option value="deleted">Deleted Users</option>
+                        </select>
                     </div>
 
                     <!-- User List -->
-                    <div class="card" id="admin-list-card">
+                    <div class="card" id="admin-list-card ">
                         <div class="section-bottom-line">Users :</div>
-                        <div class="table-wrap">
+                        <div class="table-wrap admin-users-table">
                             <table id="admin-users-table">
                                 <thead>
                                     <tr>
@@ -60,7 +70,8 @@
                     <div class="card" id="admin-detail-card" style="display:none; margin-top: 20px;">
                         <div class="section-head">
                             <div class="section-bottom-line">User Details :</div>
-                            <button class="btn btn-outline btn-sm" onclick="adminCloseDetails()"><i class="fa-solid fa-x" style="color: rgb(255, 255, 255);"></i></button>
+                            <button class="btn btn-outline btn-sm" onclick="adminCloseDetails()"><i
+                                    class="fa-solid fa-x" style="color: rgb(255, 255, 255);"></i></button>
                         </div>
 
                         <div id="admin-detail-body">
@@ -83,10 +94,12 @@
                             <div class="section-bottom-line" style="margin-top: 24px; margin-bottom: 10px;">
                                 Bank Details / Beneficiaries :
                             </div>
-                            <div class="table-wrap">
+
+                            <div class="table-wrap admin-benificiaries">
                                 <table>
                                     <thead>
                                         <tr>
+                                            <th>No.</th>
                                             <th>Beneficiary Name</th>
                                             <th>Account Number</th>
                                             <th>Added On</th>
@@ -104,15 +117,19 @@
                             <div class="section-bottom-line" style="margin-top: 24px; margin-bottom: 10px;">
                                 Transaction History :
                             </div>
-                            <div class="table-wrap">
+                            <div class="table-wrap admin-histories">
                                 <table>
                                     <thead>
                                         <tr>
+                                            <th>#</th>
                                             <th>Date</th>
-                                            <th>Type</th>
-                                            <th>Amount</th>
                                             <th>Sender</th>
                                             <th>Receiver</th>
+                                            <th>Type</th>
+                                            <th>Amount</th>
+                                            <th>Sender A/c No</th>
+                                            <th>Receiver A/c No</th>
+
                                         </tr>
                                     </thead>
                                     <tbody id="ad-transactions-tbody">
@@ -123,7 +140,7 @@
                                 </table>
                                 <div>
                                     <!-- <div class="section-title">User Details</div> -->
-                                    <div style="display:flex; gap:10px;">
+                                    <div style="display:flex; gap:10px; margin: 8px;">
                                         <button class="btn btn-primary btn-sm" id="ad-statement-btn"
                                             onclick="adminDownloadStatement()">
                                             Download Statement

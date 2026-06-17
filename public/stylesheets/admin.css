@@ -1,16 +1,47 @@
 .admin-search-row {
   display: flex;
+  
   gap: 10px;
 }
-
-.admin-search-row .input {
+.admin-search-row .input{
   flex: 1;
+  padding: auto;
+}
+.search-wrapper {
+    position: relative;
+    width : 100%;
 }
 
+#admin-search-input {
+    width: 100%;
+    padding-right: 35px; /* button mate space */
+}
+
+.clear-btn {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    border: none;
+    background: transparent;
+    cursor: pointer;
+
+    padding: 0;
+}
+
+.admin-users-table{
+  border-radius: 12px;
+  border: 1px solid var(--border);
+
+}
+#admin-search-scope{
+  margin-top: 10px;
+}
 #admin-users-table th,
 #admin-users-table td {
   padding: 12px 10px;
-  text-align: left;
+  text-align: center;
   border-bottom: 1px solid var(--border, #e5e5e5);
 }
 
@@ -25,14 +56,33 @@
 }
 
 .admin-detail-grid {
+  padding: 18px;
+  background :rgb(67, 84, 36);
+  border-radius: 12px;
+  border: 1px solid var(--border);
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px 24px;
+  
+}
+.admin-benificiaries{
+  border: 1px solid var(--border);
+  border-radius: 12px;
+
+}
+.admin-histories{
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 0px;
 }
 
-@media (max-width: 700px) {
+
+
+
+@media (max-width: 900px) {
   .admin-search-row {
     flex-direction: column;
+    
   }
   .admin-detail-grid {
     grid-template-columns: 1fr;

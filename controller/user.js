@@ -375,6 +375,7 @@ exports.deleteAccount = async (req, res) => {
 // ===== ADMIN: Get all active (non-deleted) users =====
 exports.getAllUsersAdmin = async (req, res) => {
   try {
+    
     const data = await user.find({ isDeleted: false }).select("-password -otp -otpExpire");
     res.status(200).json({
       success: true,

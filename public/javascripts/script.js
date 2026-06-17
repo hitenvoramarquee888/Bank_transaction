@@ -385,9 +385,10 @@ async function doTransaction() {
   try {
     const r = await api(
       "POST",
+    
 
       "/api/v1/transaction/transaction",
-
+        
       {
         transaction: amount,
 
@@ -978,8 +979,9 @@ async function adminViewUser(userId) {
   // Beneficiaries
   const benTbody = document.getElementById("ad-beneficiaries-tbody");
   if (beneficiaries && beneficiaries.length > 0) {
-    benTbody.innerHTML = beneficiaries.map(b => `
+    benTbody.innerHTML = beneficiaries.map((b,i) => `
       <tr>
+        <td>${i + 1}</td>
         <td>${b.beneficiaryName || "—"}</td>
         <td>${b.account_number || "—"}</td>
         <td>${fmtDate(b.createdAt)}</td>
@@ -992,13 +994,20 @@ async function adminViewUser(userId) {
   // Transactions
   const txnTbody = document.getElementById("ad-transactions-tbody");
   if (transactions && transactions.length > 0) {
-    txnTbody.innerHTML = transactions.map(t => `
+    txnTbody.innerHTML = transactions.map((t, i) => `
       <tr>
+        <td>${i + 1}</td>
         <td>${fmtDate(t.createdAt)}</td>
+        <td>${t.senderName || "Self"}</td>
+        <td>${t.receiverName || "Self"}</td>
         <td>${t.method}</td>
-        <td>${fmt(t.transaction)}</td>
-        <td>${t.senderName || "—"}</td>
-        <td>${t.receiverName || "—"}</td>
+        <td class="amount amount-${t.method}">
+         ${t.method === "credit" ? "+" : "-"}
+         ${fmt(t.transaction)}</td>
+          <td class="ac-number">${t.senderAccountNumber || "Self"}</td>
+         <td class="ac-number">${t.receiverAccountNumber || "Self"}</td>
+
+        
       </tr>
     `).join("");
   } else {
@@ -1012,6 +1021,25 @@ async function adminViewUser(userId) {
 function adminCloseDetails() {
   document.getElementById("admin-detail-card").style.display = "none";
 }
+
+//  input remove part //
+const input = document.getElementById("admin-search-input");
+const btn = document.querySelector(".clear-btn");
+
+function inputValueRemove() {
+    input.value = "";
+    btn.style.display = "none";
+}
+
+input.addEventListener("input", () => {
+    if (input.value.trim()) {
+    btn.style.display = "block";
+ }  else {
+    btn.style.display = "none";
+}
+});
+
+btn.style.display = "none";
 
 // Auto-load users when admin page opens
 document.addEventListener("DOMContentLoaded", function () {
