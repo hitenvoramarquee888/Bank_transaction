@@ -137,6 +137,33 @@ exports.transaction = async (req, res) => {
     const totalBalance =
       balanceData.length > 0 ? balanceData[0].totalbalance : 0;
 
+    const amount = Number(passdata.transaction);
+
+    if (
+      passdata.method === "debit" &&
+      amount > totalBalance
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient balance",
+      });
+    }
+    if (isNaN(amount)) {
+      throw new Error("Invalid amount");
+    }
+
+    if (amount <= 0) {
+      throw new Error(
+        "Amount must be greater than zero"
+      );
+    }
+
+    if (amount > 50000) {
+      throw new Error(
+        "Maximum transaction limit ₹50000"
+      );
+    }
+
     const userdata = await user.findById(userid);
 
 
@@ -341,7 +368,11 @@ exports.transfer = async (req, res) => {
     let receiver;
 
     if (beneficiaryId) {
-      const beneficiary = await Beneficiary.findById(beneficiaryId);
+      const beneficiary =
+        await Beneficiary.findOne({
+          _id: beneficiaryId,
+          userId: senderId
+        });
 
       if (!beneficiary) {
         throw new Error("Beneficiary not found");
@@ -401,6 +432,21 @@ exports.transfer = async (req, res) => {
     // Balance validation
     if (amount > totalBalance) {
       throw new Error("Insufficient balance");
+    }
+    if (isNaN(amount)) {
+      throw new Error("Invalid amount");
+    }
+
+    if (Number(amount) <= 0) {
+      throw new Error(
+        "Amount must be greater than zero"
+      );
+    }
+
+    if (Number(amount) > 50000) {
+      throw new Error(
+        "Maximum transaction limit ₹50000"
+      );
     }
 
     // Sender debit
@@ -530,16 +576,64 @@ Bank Support Team`,
 };
 exports.addBeneficiary = async (req, res) => {
   try {
+    const { accountNo } = req.body;
+
+    // Account number required
+    if (!accountNo) {
+      return res.json({
+        success: false,
+        message: "Account number is required",
+      });
+    }
+
+    // Find beneficiary user by account number
+    const beneficiaryUser = await user.findOne({
+      account_number: accountNo,
+    });
+
+    if (!beneficiaryUser) {
+      return res.json({
+        success: false,
+        message: "Account number not found",
+      });
+    }
+    if (accountNo == req.user.account_number) {
+      throw new Error(
+        "You cannot add your own account"
+      );
+    }
+
+    // Prevent adding self as beneficiary
+    if (beneficiaryUser._id.toString() === req.user.id) {
+      return res.json({
+        success: false,
+        message: "You cannot add yourself as beneficiary",
+      });
+    }
+
+    // Check duplicate beneficiary
+    const existingBeneficiary = await Beneficiary.findOne({
+      userId: req.user.id,
+      account_number: accountNo,
+    });
+
+    if (existingBeneficiary) {
+      return res.json({
+        success: false,
+        message: "Beneficiary already added",
+      });
+    }
+
+    // Create beneficiary
     const data = await Beneficiary.create({
       userId: req.user.id,
-
-      beneficiaryName: req.body.name,
-
-      account_number: req.body.accountNo,
+      beneficiaryName: beneficiaryUser.name,
+      account_number: beneficiaryUser.account_number,
     });
 
     res.json({
       success: true,
+      message: "Beneficiary added successfully",
       data,
     });
   } catch (error) {
@@ -547,6 +641,59 @@ exports.addBeneficiary = async (req, res) => {
       success: false,
       error: error.message,
     });
+  }
+};
+
+exports.getBeneficiaries = async (req, res) => {
+  try {
+
+    const data =
+      await Beneficiary.find({
+        userId: req.user.id
+      });
+
+    res.json({
+      success: true,
+      data
+    });
+
+  } catch (error) {
+
+    res.json({
+      success: false,
+      message: error.message
+    });
+
+  }
+};
+exports.deleteBeneficiary = async (req, res) => {
+  try {
+
+    const deleted =
+      await Beneficiary.findOneAndDelete({
+        _id: req.params.id,
+        userId: req.user.id
+      });
+
+    if (!deleted) {
+      return res.json({
+        success: false,
+        message: "Beneficiary not found"
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Beneficiary deleted successfully"
+    });
+
+  } catch (error) {
+
+    res.json({
+      success: false,
+      message: error.message
+    });
+
   }
 };
 

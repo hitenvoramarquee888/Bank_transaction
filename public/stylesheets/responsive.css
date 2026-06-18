@@ -84,6 +84,9 @@
   .sidebar-toggle {
     display: block;
   }
+  .page{
+    width: auto;
+  }
 
   .sidebar-close {
     display: block;
@@ -96,6 +99,7 @@
     font-size: 24px;
     cursor: pointer;
   }
+  
 
   .sidebar {
     transform: translateX(-100%);
@@ -275,8 +279,14 @@
   .detail-val {
     font-size: 12px;
   }
-  /* ----admin section-- */
-  .btn-primary{
-    width: 180px;
+   .btn-primary{
+    width: 100%;
   } 
+  /* ----admin section-- */
+     .search-btn{
+    width : 180px
+  }
+
+ 
+
 }

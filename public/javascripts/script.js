@@ -106,7 +106,9 @@ function toast(msg, type = "info") {
     (type === "error" ? "error" : type === "success" ? "success" : "");
   d.innerHTML = `<span>${type === "success" ? "✓" : type === "error" ? "✕" : "ℹ"}</span> ${msg}`;
   document.getElementById("toast").appendChild(d);
+  document.getElementById("toast").appendChild(d);
   setTimeout(() => d.remove(), 4000);
+  
 }
 
 function openModal(id) {
@@ -241,7 +243,7 @@ async function resetPass() {
 function logout() {
   localStorage.removeItem("np_token");
   localStorage.removeItem("np_user");
-  localStorage.clear();
+  
   window.location.href = "/";
 }
 
@@ -649,17 +651,30 @@ async function loadTransferBalanceAndBens() {
   } catch { }
   // populate beneficiary dropdown
   try {
-    const bens = JSON.parse(localStorage.getItem("np_bens") || "[]");
-    const sel = document.getElementById("transfer-ben-select");
+     const benRes = await api(
+    "GET",
+    "/api/v1/transaction/beneficiaries"
+  );
+
+  if (benRes.success) {
+
+    const sel =
+      document.getElementById(
+        "transfer-ben-select"
+      );
+
     sel.innerHTML =
       '<option value="">-- Select a beneficiary --</option>' +
-      bens
+      benRes.data
         .map(
           (b) =>
-            `<option value="${b._id}">${b.beneficiaryName} (${b.accountNo})</option>`,
+            `<option value="${b._id}">${b.beneficiaryName}</option>`
         )
         .join("");
-  } catch { }
+
+  }
+       
+  } catch {}
 }
 async function loadTransactionBalance() {
   try {
@@ -677,6 +692,8 @@ async function loadTransactionBalance() {
     console.error(err);
   }
 }
+
+
 
 async function doTransfer() {
   const amount = +document.getElementById("transfer-amount").value;
@@ -719,10 +736,25 @@ async function doTransfer() {
 //  BENEFICIARIES
 // ─────────────────────────────────────────────
 async function loadBeneficiaries() {
-  // The API doesn't expose a list endpoint, so we cache locally
-  const bens = JSON.parse(localStorage.getItem("np_bens") || "[]");
-  renderBenList(bens);
+
+  try {
+
+    const r = await api(
+      "GET",
+      "/api/v1/transaction/beneficiaries"
+    );
+
+    if (r.success) {
+      renderBenList(r.data);
+    }
+
+  } catch (error) {
+    console.error(error);
+  }
+     
 }
+
+
 
 function renderBenList(bens) {
   const el = document.getElementById("beneficiary-list");
@@ -743,9 +775,9 @@ function renderBenList(bens) {
       <div class="avatar" style="width:40px;height:40px">${initials}</div>
       <div class="ben-info">
         <div class="ben-name">${b.beneficiaryName || "—"}</div>
-        <div class="ben-acc">${("" + b.accountNo).replace(/(\d{4})/g, "$1 ").trim()}</div>
+       
       </div>
-      <button class="btn btn-outline btn-sm" onclick="removeBen(${i})">Remove</button>
+      <button class="btn btn-outline btn-sm" onclick="removeBen('${b._id}')">Remove</button>
     </div>`;
     })
     .join("");
@@ -756,26 +788,17 @@ function openAddBen() {
 }
 
 async function doAddBen() {
-  const name = document.getElementById("ben-name").value;
+  
   const accno = +document.getElementById("ben-accno").value;
-  if (!name || !accno) {
-    toast("Fill all fields", "error");
-    return;
-  }
+  
   try {
     const r = await api("POST", "/api/v1/transaction/add-beneficiary", {
-      name,
       accountNo: accno,
     });
     if (r.success) {
-      const bens = JSON.parse(localStorage.getItem("np_bens") || "[]");
-      bens.push(
-        r.data || { _id: Date.now(), beneficiaryName: name, accountNo: accno },
-      );
-      localStorage.setItem("np_bens", JSON.stringify(bens));
-      renderBenList(bens);
+      await loadBeneficiaries();
+      await loadTransferBalanceAndBens();
       closeModal("add-ben-modal");
-      document.getElementById("ben-name").value = "";
       document.getElementById("ben-accno").value = "";
       toast("Beneficiary added!", "success");
     } else toast(r.error || r.message, "error");
@@ -784,12 +807,50 @@ async function doAddBen() {
   }
 }
 
-function removeBen(idx) {
-  const bens = JSON.parse(localStorage.getItem("np_bens") || "[]");
-  bens.splice(idx, 1);
-  localStorage.setItem("np_bens", JSON.stringify(bens));
-  renderBenList(bens);
-  toast("Beneficiary removed", "info");
+async function removeBen(id) {
+
+  if (!confirm("Remove beneficiary?")) {
+    return;
+  }
+
+  try {
+
+    const r = await api(
+      "DELETE",
+      `/api/v1/transaction/beneficiary/${id}`
+      
+    );
+   
+
+    if (r.success) {
+
+  const benRes = await api(
+    "GET",
+    "/api/v1/transaction/beneficiaries"
+  );
+
+  console.log("After Delete:", benRes.data);
+
+  renderBenList(benRes.data);
+
+  await loadTransferBalanceAndBens();
+
+  toast(
+    "Beneficiary removed",
+    "success"
+  );
+
+}
+
+  } catch {
+
+    toast(
+      "Cannot reach server",
+      "error"
+    );
+
+  }
+
 }
 
 // ─────────────────────────────────────────────
@@ -877,7 +938,7 @@ async function doUpdateProfile() {
 // ─────────────────────────────────────────────
 //  ADMIN PANEL
 // ─────────────────────────────────────────────
-
+let allAdminUsers = [];
 async function adminLoadUsers(scope = "active") {
   const tbody = document.getElementById("admin-users-tbody");
   if (!tbody) return;
@@ -895,7 +956,59 @@ async function adminLoadUsers(scope = "active") {
     return;
   }
 
-  renderAdminUsers(r.data);
+  allAdminUsers = r.data || [];
+  renderAdminUsersWithHighlight(allAdminUsers, "");
+}
+function adminLiveSearch() {
+  const query = document.getElementById("admin-search-input").value.trim().toLowerCase();
+  const scope = document.getElementById("admin-search-scope").value;
+
+  // Re-fetch if scope changed, but usually we can reuse cache
+  if (!allAdminUsers.length) {
+    adminLoadUsers(scope);
+    return;
+  }
+
+  renderAdminUsersWithHighlight(allAdminUsers, query);
+}
+function renderAdminUsersWithHighlight(users, query) {
+  const tbody = document.getElementById("admin-users-tbody");
+  
+  if (!users || users.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7">No users found</td></tr>`;
+    return;
+  }
+
+  let filtered = users;
+  if (query) {
+    filtered = users.filter(u => 
+      (u.name && u.name.toLowerCase().includes(query)) ||
+      (u.email && u.email.toLowerCase().includes(query)) ||
+      (u.phone && String(u.phone).includes(query)) ||
+      (u.account_number && String(u.account_number).includes(query))
+      
+    );
+  }
+
+  tbody.innerHTML = filtered.map(u => {
+    const highlight = (text) => {
+      if (!query || !text) return text || "—";
+      const regex = new RegExp(`(${query})`, 'gi');
+      return text.toString().replace(regex, '<span style="background:#c9a84c33; color:var(--gold); border-radius:3px;">$1</span>');
+    };
+
+    return `
+      <tr>
+        <td>${highlight(u.name)}</td>
+        <td>${highlight(u.email)}</td>
+        <td>${highlight(u.phone)}</td>
+        <td>${highlight(u.account_number)}</td>
+        <td>${u.role || "user"}</td>
+        <td>${u.isDeleted ? '<span class="status-deleted">Deleted</span>' : '<span class="status-active">Active</span>'}</td>
+        <td><button class="btn btn-outline btn-sm" onclick="adminViewUser('${u._id}')">View</button>${u.isDeleted? `
+              <button class="btn btn-success btn-sm" onclick="restoreUser('${u._id}')">Restore</button> ` : ""}</td>
+      </tr> `;
+  }).join("");
 }
 
 function renderAdminUsers(users) {
@@ -913,9 +1026,12 @@ function renderAdminUsers(users) {
       <td>${u.account_number || "—"}</td>
       <td>${u.role || "user"}</td>
       <td>${u.isDeleted ? '<span class="status-deleted">Deleted</span>' : '<span class="status-active">Active</span>'}</td>
-      <td><button class="btn btn-outline btn-sm" onclick="adminViewUser('${u._id}')">View</button></td>
-    </tr>
-  `).join("");
+      <td>
+         <button class="btn btn-outline btn-sm" onclick="adminViewUser('${u._id}')">View</button>
+
+           ${u.isDeleted? `<button class="btn btn-success btn-sm" onclick="restoreUser('${u._id}')">Restore</button>`: ""}
+      </td>
+    </tr> `).join("");
 }
 
 async function adminSearchUsers() {
@@ -946,6 +1062,7 @@ async function adminSearchUsers() {
   );
 
   renderAdminUsers(filtered);
+  adminLiveSearch();
 }
 
 async function adminViewUser(userId) {
@@ -1084,4 +1201,25 @@ async function adminDownloadStatement() {
   } catch (err) {
     toast("Failed to download statement", "error");
   }
+}
+// restore deleted user
+async function restoreUser(id) {
+
+  if (!confirm("Restore this user account?")) {
+    return;
+  }
+
+  const r = await api(
+    "PATCH",
+    `/api/v1/admin/users/${id}/restore`
+  );
+
+  if (!r.success) {
+    toast(r.message || "Restore failed", "error");
+    return;
+  }
+
+  toast("User restored successfully", "success");
+
+ await adminLoadUsers("deleted");
 }

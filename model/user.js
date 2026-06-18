@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
     name: {
         type: String,
+        trim: true,
+        minlength: 3,
+        maxlength: 50
 
     },
     email: {
@@ -15,7 +18,6 @@ const userSchema = new mongoose.Schema({
     phone: {
         type: Number,
         required: [true, "Please provide a phone number"],
-        unique: [true, "Phone number already exists"],
 
     },
     password: {
@@ -50,6 +52,11 @@ const userSchema = new mongoose.Schema({
 
     deletedAt: {
         type: Date,
+        default: null
+    },
+    deletedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
         default: null
     },
     role: {

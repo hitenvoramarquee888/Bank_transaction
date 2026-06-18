@@ -6,8 +6,9 @@ const transaction = require("../model/transaction");
 exports.register = async (req, res) => {
   try {
     let passdata = req.body;
-
-    // Password
+    if (!passdata.name?.trim()) {
+      throw new Error("Name is required");
+    }
     const password = passdata.password;
 
     // Password Validation
@@ -32,6 +33,16 @@ exports.register = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Email already exists",
+      });
+    }
+    const existingPhone = await user.findOne({
+      phone: passdata.phone,
+    });
+
+    if (existingPhone) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone already exists",
       });
     }
 
@@ -112,6 +123,78 @@ exports.getusers = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const updateid = req.params.updateid;
+    if (req.user.id !== updateid) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+    if (
+      req.body.name !== undefined &&
+      !req.body.name.trim()
+    ) {
+      throw new Error(
+        "Name cannot be empty"
+      );
+    }
+    if (req.body.phone) {
+
+      const existingPhone =
+        await user.findOne({
+          phone: req.body.phone,
+          _id: { $ne: updateid }
+        });
+
+      if (existingPhone) {
+        throw new Error(
+          "Phone already exists"
+        );
+      }
+    }
+    if (req.body.email) {
+
+  const emailRegex =
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (
+    !emailRegex.test(
+      req.body.email
+    )
+  ) {
+    throw new Error(
+      "Invalid email format"
+    );
+  }
+
+  
+}
+    //  if (req.body.email) {
+    //   const email = req.body.email;
+    //   const emailRegex =
+    //      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    //   if (!emailRegex.test(email)) {
+    //     return res.status(400).json({
+    //       status: "fail",
+    //       message:
+    //         "Invalid email format",
+    //     });
+    //   }
+    //   const sameEmail =
+    //     await bcrypt.compare(
+    //       email,
+    //       (
+    //         await user.findById(updateid)
+    //       ).email
+    //     );
+
+    //   if (sameEmail) {
+    //     throw new Error(
+    //       "Email already exists"
+    //     );
+    //   }
+    
+    
+
 
     // If password is being updated, validate and hash it
     if (req.body.password) {
@@ -125,6 +208,20 @@ exports.updateProfile = async (req, res) => {
             "Password must be at least 8 characters and include uppercase, lowercase, number, and special character",
         });
       }
+      const samePassword =
+        await bcrypt.compare(
+          password,
+          (
+            await user.findById(updateid)
+          ).password
+        );
+
+      if (samePassword) {
+        throw new Error(
+          "New password must be different from current password"
+        );
+      }
+
       // Hash the new password
       const salt = await bcrypt.genSalt(10);
       req.body.password = await bcrypt.hash(password, salt);
@@ -327,6 +424,16 @@ exports.resetpassword = async (req, res) => {
         "Password must be at least 8 characters and include uppercase, lowercase, number, and special character",
       );
     }
+    const samePassword = await bcrypt.compare(
+      req.body.password,
+      userdata.password
+    );
+
+    if (samePassword) {
+      throw new Error(
+        "New password must be different from old password"
+      );
+    }
     const hashpassword = await bcrypt.hash(req.body.password, 10);
 
     userdata.password = hashpassword;
@@ -375,7 +482,7 @@ exports.deleteAccount = async (req, res) => {
 // ===== ADMIN: Get all active (non-deleted) users =====
 exports.getAllUsersAdmin = async (req, res) => {
   try {
-    
+
     const data = await user.find({ isDeleted: false }).select("-password -otp -otpExpire");
     res.status(200).json({
       success: true,
@@ -404,6 +511,46 @@ exports.getDeletedUsers = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching deleted users",
+      error: error.message,
+    });
+  }
+};
+
+// ====== ADMIN : restore deleted user ======
+
+exports.restoreUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    const userData = await user.findById(userId);
+
+    if (!userData) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (!userData.isDeleted) {
+      return res.status(400).json({
+        success: false,
+        message: "User is already active",
+      });
+    }
+
+    userData.isDeleted = false;
+    userData.deletedAt = null;
+
+    await userData.save();
+
+    res.status(200).json({
+      success: true,
+      message: "User restored successfully",
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
       error: error.message,
     });
   }

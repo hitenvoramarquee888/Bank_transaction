@@ -20,6 +20,9 @@ router.delete('/user/delete', middleware.authcheck, userController.deleteAccount
 router.get('/admin/users', middleware.authcheck, middleware.isAdmin, userController.getAllUsersAdmin);
 router.get('/admin/users/deleted', middleware.authcheck, middleware.isAdmin, userController.getDeletedUsers);
 router.get('/admin/users/:id', middleware.authcheck, middleware.isAdmin, userController.getUserFullDetails);
+router.patch('/admin/users/:id/restore',middleware.authcheck,middleware.isAdmin,userController.restoreUser);
+router.get('/admin/users/:id/statement', middleware.authcheck, middleware.isAdmin, transactionController.downloadStatementAdmin);
+
 
 // transaction routes
 router.post('/transaction/transaction', middleware.authcheck, transactionController.transaction);
@@ -29,7 +32,8 @@ router.get('/transaction/history/:id', middleware.authcheck, transactionControll
 router.get('/transaction/statement', middleware.authcheck, transactionController.downloadStatement);
 router.post('/transaction/transfer', middleware.authcheck, transactionController.transfer);
 router.post('/transaction/add-beneficiary', middleware.authcheck, transactionController.addBeneficiary);
-router.get('/admin/users/:id/statement', middleware.authcheck, middleware.isAdmin, transactionController.downloadStatementAdmin);
+router.get('/transaction/beneficiaries', middleware.authcheck, transactionController.getBeneficiaries);
+router.delete('/transaction/beneficiary/:id', middleware.authcheck, transactionController.deleteBeneficiary);
 
 
 module.exports = router;

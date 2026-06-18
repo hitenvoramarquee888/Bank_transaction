@@ -15,14 +15,14 @@
 
                             <div class="search-wrapper">
                                 <input type="text" id="admin-search-input" class="input"
-                                    placeholder="Search by name, email, phone or account number...">
+                                    placeholder="Search by name, email, phone or account number..." oninput="adminLiveSearch()">
 
                                 <button type="button" class="clear-btn" onclick="inputValueRemove()">
                                     <i class="fa-solid fa-xmark" style="color: rgb(159, 168, 183);"></i>
                                 </button>
                             </div>
 
-                            <button class="btn btn-primary" onclick="adminSearchUsers()"><i
+                            <button class="btn btn-primary search-btn" onclick="adminSearchUsers()"><i
                                     class="fa-solid fa-magnifying-glass"></i> Search</button>
                         </div>
                         <select id="admin-search-scope" class="input admin-search-scope" style="max-width: 180px;">

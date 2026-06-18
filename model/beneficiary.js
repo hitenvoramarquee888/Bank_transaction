@@ -10,10 +10,13 @@ const beneficiarySchema = new mongoose.Schema(
 
     beneficiaryName: {
     type: String,
+    required:true,
+    trim:true
     },
 
     account_number: {
     type: Number,
+    required : true
     },
 },{ timestamps: true });
 module.exports = mongoose.model("Beneficiary", beneficiarySchema);
