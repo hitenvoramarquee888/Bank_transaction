@@ -3,6 +3,8 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const sendMail = require("../utils/sendmail");
 const transaction = require("../model/transaction");
+const fs = require('fs');
+const path = require('path');
 exports.register = async (req, res) => {
   try {
     let passdata = req.body;
@@ -24,13 +26,14 @@ exports.register = async (req, res) => {
       });
     }
 
+
     // Check Existing Email
     const existingUser = await user.findOne({
       email: passdata.email,
     });
 
     if (existingUser) {
-      return res.status(400).json({
+      return res.status(409).json({
         success: false,
         message: "Email already exists",
       });
@@ -40,7 +43,7 @@ exports.register = async (req, res) => {
     });
 
     if (existingPhone) {
-      return res.status(400).json({
+      return res.status(409).json({
         success: false,
         message: "Phone already exists",
       });
@@ -153,52 +156,45 @@ exports.updateProfile = async (req, res) => {
     }
     if (req.body.email) {
 
-  const emailRegex =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const emailRegex =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (
-    !emailRegex.test(
-      req.body.email
-    )
-  ) {
-    throw new Error(
-      "Invalid email format"
-    );
-  }
+      if (
+        !emailRegex.test(
+          req.body.email
+        )
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid email format"
+        });
+      }
+    }
+    const allowedFields = [
+      "name",
+      "email",
+      "phone",
+      "password"
+    ];
 
-  
-}
-    //  if (req.body.email) {
-    //   const email = req.body.email;
-    //   const emailRegex =
-    //      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    //   if (!emailRegex.test(email)) {
-    //     return res.status(400).json({
-    //       status: "fail",
-    //       message:
-    //         "Invalid email format",
-    //     });
-    //   }
-    //   const sameEmail =
-    //     await bcrypt.compare(
-    //       email,
-    //       (
-    //         await user.findById(updateid)
-    //       ).email
-    //     );
+    const filteredBody = {};
 
-    //   if (sameEmail) {
-    //     throw new Error(
-    //       "Email already exists"
-    //     );
-    //   }
-    
-    
+    allowedFields.forEach((field) => {
 
+      if (
+        req.body[field] !== undefined
+      ) {
+
+        filteredBody[field] =
+          req.body[field];
+
+      }
+
+    });
 
     // If password is being updated, validate and hash it
-    if (req.body.password) {
-      const password = req.body.password;
+    if (filteredBody.password) {
+      const password = filteredBody.password;
       const passwordRegex =
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
       if (!passwordRegex.test(password)) {
@@ -224,11 +220,11 @@ exports.updateProfile = async (req, res) => {
 
       // Hash the new password
       const salt = await bcrypt.genSalt(10);
-      req.body.password = await bcrypt.hash(password, salt);
+      filteredBody.password = await bcrypt.hash(password, salt);
     }
 
     const updatedata = await user
-      .findByIdAndUpdate(updateid, req.body, {
+      .findByIdAndUpdate(updateid, filteredBody, {
         new: true,
         runValidators: true,
       })
@@ -257,27 +253,39 @@ exports.updateProfile = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     let passdata = req.body;
+    const identifier = passdata.identifier;
 
-    const emailVerify = await user.findOne({
-      email: passdata.email
+    let emailVerify;
 
-    });
-    if (emailVerify?.isDeleted) {
-      throw new Error(
-        "This account has been deleted."
-      );
+    if (isNaN(identifier)) {
+
+      // Email Login
+      emailVerify = await user.findOne({
+        email: identifier
+      });
+
+    } else {
+
+      // Phone Login
+      emailVerify = await user.findOne({
+        phone: Number(identifier)
+      });
+
     }
 
-
-    if (!emailVerify) throw new Error("Account not found. Please register first.");
+    // if (!emailVerify) throw new Error("Account not found. Please register first.");
+    if (!emailVerify) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials"
+      });
+    }
 
     if (
       emailVerify.lockUntil &&
-      emailVerify.lockUntil > Date.now()
+      new Date(emailVerify.lockUntil).getTime() > Date.now()
     ) {
-      throw new Error(
-        "Account locked. Try again after 5 minutes."
-      );
+      throw new Error("Account locked. Try again after 5 minutes.");
     }
 
     const passwordVerify = await bcrypt.compare(
@@ -286,15 +294,12 @@ exports.login = async (req, res) => {
     );
 
 
-    if (!passwordVerify) {
 
+    if (!passwordVerify) {
       emailVerify.loginAttempts += 1;
 
       if (emailVerify.loginAttempts >= 5) {
-
-        emailVerify.lockUntil =
-          new Date(Date.now() + 5 * 60 * 1000);
-
+        emailVerify.lockUntil = new Date(Date.now() + 5 * 60 * 1000);
         await emailVerify.save();
 
         throw new Error(
@@ -304,8 +309,18 @@ exports.login = async (req, res) => {
 
       await emailVerify.save();
 
-      throw new Error("Invalid password.");
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials"
+      });
     }
+    if (emailVerify?.isDeleted) {
+    return res.status(403).json({
+    success: false,
+    message: "This account has been deleted."
+  });
+    }
+
 
 
     emailVerify.loginAttempts = 0;
@@ -332,9 +347,9 @@ exports.login = async (req, res) => {
       token,
     });
   } catch (err) {
-    res.status(500).json({
+    res.status(404).json({
       success: false,
-      error: err.message,
+      message: err.message
     });
   }
 };
@@ -345,14 +360,19 @@ exports.forgotpassword = async (req, res) => {
     });
 
     if (!userdata) {
-      throw new Error("user not found");
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
     }
 
-    const otp = Math.floor(1000 + Math.random() * 9000);
+    const otp = Math.floor(100000 + Math.random() * 900000);
 
     userdata.otp = otp;
 
     userdata.otpExpire = Date.now() + 5 * 60 * 1000;
+
+    userdata.resetOtpVerified = false;
 
     await userdata.save();
 
@@ -366,12 +386,12 @@ exports.forgotpassword = async (req, res) => {
 
     console.log("OTP :", otp);
 
-    res.json({
+    res.status(200).json({
       success: true,
       message: "OTP sent successfully",
     });
   } catch (error) {
-    res.json({
+    res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -384,23 +404,45 @@ exports.verifyotp = async (req, res) => {
     });
 
     if (!userdata) {
-      throw new Error("user not found");
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    if (!userdata.otp || !userdata.otpExpire) {
+      return res.status(404).json({
+        success: false,
+        message: "OTP not found"
+      });
     }
 
     if (Date.now() > userdata.otpExpire) {
-      throw new Error("OTP expired");
+      return res.status(400).json({
+        success: false,
+        message: "OTP expired"
+      });
     }
 
     if (userdata.otp != req.body.otp) {
-      throw new Error("Invalid OTP");
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP"
+      });
     }
 
-    res.json({
+    // OTP verified successfully
+    userdata.resetOtpVerified = true;
+
+    await userdata.save();
+
+    return res.status(200).json({
       success: true,
-      message: "OTP verified",
+      message: "OTP verified successfully",
     });
-  } catch (error) {
-    res.json({
+
+  } catch(error) {
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -413,42 +455,66 @@ exports.resetpassword = async (req, res) => {
     });
 
     if (!userdata) {
-      throw new Error("user not found");
+       return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
     }
-    // 🔥 Password length validation
+
+    // OTP verification check
+    if (!userdata.resetOtpVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "Please verify OTP first"
+      });
+    }
+
+    // Password validation
     const password = req.body.password;
+
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+
     if (!passwordRegex.test(password)) {
-      throw new Error(
-        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character",
-      );
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
+      });
     }
+
+    // Check if new password is same as old password
     const samePassword = await bcrypt.compare(
-      req.body.password,
+      password,
       userdata.password
     );
 
     if (samePassword) {
-      throw new Error(
-        "New password must be different from old password"
-      );
+      return res.status(400).json({
+        success: false,
+        message: "New password must be different from old password"
+      });
     }
-    const hashpassword = await bcrypt.hash(req.body.password, 10);
 
+    // Hash new password
+    const hashpassword = await bcrypt.hash(password, 10);
+
+    // Update password
     userdata.password = hashpassword;
 
+    // Clear OTP related data
     userdata.otp = null;
     userdata.otpExpire = null;
+    userdata.resetOtpVerified = false;
 
     await userdata.save();
 
-    res.json({
+    return res.status(200).json({
       success: true,
       message: "Password reset successfully",
     });
+
   } catch (error) {
-    res.json({
+    return res.json({
       success: false,
       message: error.message,
     });
@@ -476,6 +542,61 @@ exports.deleteAccount = async (req, res) => {
       success: false,
       error: error.message,
     });
+  }
+};
+//--------------upload profile pic----------//
+exports.uploadProfilePic = async (req, res) => {
+  try {
+    const updateid = req.params.updateid;
+    if (req.user.id !== updateid) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+
+    // Delete old picture if exists
+    const existing = await user.findById(updateid);
+    if (existing?.profilePic) {
+      const oldPath = path.join(__dirname, '..', 'public', existing.profilePic);
+      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    }
+
+    const picPath = '/profile/' + req.file.filename;
+    const updated = await user.findByIdAndUpdate(
+      updateid,
+      { profilePic: picPath },
+      { new: true }
+    ).select('-password');
+
+    res.status(200).json({ success: true, message: 'Profile picture updated', data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+exports.removeProfilePic = async (req, res) => {
+  try {
+    const updateid = req.params.updateid;
+    if (req.user.id !== updateid) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const existing = await user.findById(updateid);
+    if (existing?.profilePic) {
+      const oldPath = path.join(__dirname, '..', 'public', existing.profilePic);
+      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+    }
+
+    const updated = await user.findByIdAndUpdate(
+      updateid,
+      { profilePic: null },
+      { new: true }
+    ).select('-password');
+
+    res.status(200).json({ success: true, message: 'Profile picture removed', data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 

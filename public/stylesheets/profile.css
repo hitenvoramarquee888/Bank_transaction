@@ -9,6 +9,8 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 25px;
+  
+  
 }
 
 .profile-header {
@@ -85,4 +87,7 @@
   background: rgb(123, 34, 11);
   color: white;
   cursor: pointer;
+}
+.img-upld-btn{
+  margin: -10px 0 0 -5px;
 }

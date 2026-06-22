@@ -100,17 +100,12 @@ exports.transaction = async (req, res) => {
   try {
     let passdata = req.body;
     const userid = req.user.id;
-    console.log("======>", userid)
+    
 
 
     const alltransactions = await transaction.find({
       account_Holdername: userid
     });
-    // const amount = Number(req.body.transaction);
-
-    //         if (amount >50000) {
-    //         throw new Error("Maximum transaction limit is ₹50,000");
-    //         }
 
     const balanceData = await transaction.aggregate([
       {
@@ -168,7 +163,10 @@ exports.transaction = async (req, res) => {
 
 
     if (!userdata) {
-      throw new Error("User not found");
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
     }
 
 
@@ -211,6 +209,15 @@ exports.transaction = async (req, res) => {
       message: "Error creating transaction",
       error: error.message,
     });
+  }
+};
+exports.recentTransactions = async (req, res) => {
+  try {
+    const userid = req.user.id;
+    const recent = await transaction.find({ account_Holdername: userid }).sort({ createdAt: -1 }).limit(5);
+    res.status(200).json({ success: true, transactions: recent });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 exports.history = async (req, res) => {
@@ -360,7 +367,10 @@ exports.transfer = async (req, res) => {
     const sender = await user.findById(senderId);
 
     if (!sender) {
-      throw new Error("Sender not found");
+       return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
     }
 
     const { beneficiaryId, receiverAccountNo, amount } = req.body;
@@ -375,7 +385,10 @@ exports.transfer = async (req, res) => {
         });
 
       if (!beneficiary) {
-        throw new Error("Beneficiary not found");
+        return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
       }
 
       receiver = await user.findOne({
@@ -386,14 +399,23 @@ exports.transfer = async (req, res) => {
         account_number: receiverAccountNo,
       });
     }
+  
 
     if (!receiver) {
       throw new Error("Receiver not found");
     }
+      if (receiver.isDeleted) {
+      throw new Error(
+        "Receiver account is inactive"
+      );
+    }
 
     // Same account check
     if (sender.account_number === receiver.account_number) {
-      throw new Error("Cannot transfer to same account");
+      return res.status(404).json({
+        success: false,
+        message: "Cannot transfer to same account"
+      });
     }
 
     // Sender balance
@@ -592,20 +614,21 @@ exports.addBeneficiary = async (req, res) => {
     });
 
     if (!beneficiaryUser) {
-      return res.json({
+      return res.status(404).json({
         success: false,
         message: "Account number not found",
       });
     }
     if (accountNo == req.user.account_number) {
-      throw new Error(
-        "You cannot add your own account"
-      );
+       return res.status(400).json({
+        success: false,
+        message: "You cannot add your own account"
+      });
     }
 
     // Prevent adding self as beneficiary
     if (beneficiaryUser._id.toString() === req.user.id) {
-      return res.json({
+      return res.status(400).json({
         success: false,
         message: "You cannot add yourself as beneficiary",
       });
@@ -618,7 +641,7 @@ exports.addBeneficiary = async (req, res) => {
     });
 
     if (existingBeneficiary) {
-      return res.json({
+      return res.status(409).json({
         success: false,
         message: "Beneficiary already added",
       });
@@ -631,13 +654,13 @@ exports.addBeneficiary = async (req, res) => {
       account_number: beneficiaryUser.account_number,
     });
 
-    res.json({
+    res.status(201).json({
       success: true,
       message: "Beneficiary added successfully",
       data,
     });
   } catch (error) {
-    res.json({
+    res.status(500).json({
       success: false,
       error: error.message,
     });
@@ -652,14 +675,14 @@ exports.getBeneficiaries = async (req, res) => {
         userId: req.user.id
       });
 
-    res.json({
+    res.status(200).json({
       success: true,
       data
     });
 
   } catch (error) {
 
-    res.json({
+    res.status(500).json({
       success: false,
       message: error.message
     });
@@ -676,20 +699,20 @@ exports.deleteBeneficiary = async (req, res) => {
       });
 
     if (!deleted) {
-      return res.json({
+      return res.status(404).json({
         success: false,
         message: "Beneficiary not found"
       });
     }
 
-    res.json({
+    res.status(200).json({
       success: true,
       message: "Beneficiary deleted successfully"
     });
 
   } catch (error) {
 
-    res.json({
+    res.status(500).json({
       success: false,
       message: error.message
     });
@@ -697,15 +720,7 @@ exports.deleteBeneficiary = async (req, res) => {
   }
 };
 
-exports.recentTransactions = async (req, res) => {
-  try {
-    const userid = req.user.id;
-    const recent = await transaction.find({ account_Holdername: userid }).sort({ createdAt: -1 }).limit(5);
-    res.status(200).json({ success: true, transactions: recent });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-};
+
 exports.downloadStatementAdmin = async (req, res) => {
   try {
     const userId = req.params.id;

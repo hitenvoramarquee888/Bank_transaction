@@ -14,6 +14,8 @@ router.post('/forgotpassword', userController.forgotpassword);
 router.post('/verifyotp', userController.verifyotp);
 router.post('/resetpassword', userController.resetpassword);
 router.delete('/user/delete', middleware.authcheck, userController.deleteAccount);
+router.patch('/:updateid/profile-pic', middleware.authcheck, upload.single('profilePic'), userController.uploadProfilePic);
+router.delete('/:updateid/profile-pic', middleware.authcheck, userController.removeProfilePic);
 
 
 // admin routes

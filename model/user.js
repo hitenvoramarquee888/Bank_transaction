@@ -30,11 +30,19 @@ const userSchema = new mongoose.Schema({
         unique: true
 
     },
+    profilePic: {
+        type: String,
+        default: null
+    },
     otp: {
         type: Number,
     },
     otpExpire: {
         type: Date
+    },
+    resetOtpVerified: {
+        type: Boolean,
+        default: false
     },
     loginAttempts: {
         type: Number,

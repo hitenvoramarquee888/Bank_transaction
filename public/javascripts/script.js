@@ -136,15 +136,16 @@ function switchAuth(tab) {
 }
 
 async function doLogin(e) {
-  debugger;
+  
   e.preventDefault();
-  const email = document.getElementById("login-email").value;
-  const password = document.getElementById("login-pass").value;
+  
+  const email = document.getElementById("login-email").value.trim();
+  const password = document.getElementById("login-pass").value
   try {
     const r = await api("POST", "/api/v1/login", {
-      email,
-      password,
-      phone: email,
+     identifier: email,
+     password,
+      
 
 
     });
@@ -241,9 +242,11 @@ async function resetPass() {
 }
 
 function logout() {
+ 
+
   localStorage.removeItem("np_token");
   localStorage.removeItem("np_user");
-  
+
   window.location.href = "/";
 }
 
@@ -258,17 +261,24 @@ function initApp() {
       .join("")
       .slice(0, 2)
       .toUpperCase();
-    if (document.getElementById("sidebar-avatar"))
-      document.getElementById("sidebar-avatar").textContent = initials;
+    if (document.getElementById("sidebar-avatar")) {
+  const sidebarAvatar = document.getElementById("sidebar-avatar");
+  if (currentUser.profilePic) {
+    sidebarAvatar.innerHTML = `<img src="${currentUser.profilePic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+  } else {
+    sidebarAvatar.textContent = initials;
+  }
+}
     if (document.getElementById("sidebar-name"))
       document.getElementById("sidebar-name").textContent = currentUser.name || "User";
+    
     if (document.getElementById("sidebar-role"))
       document.getElementById("sidebar-role").textContent = currentUser.role || "user";
     if (document.getElementById("admin-nav-link"))
       document.getElementById("admin-nav-link").style.display =
         currentUser.role === "admin" ? "flex" : "none";
-    if (document.getElementById("profile-avatar"))
-      document.getElementById("profile-avatar").textContent = initials;
+   
+
     if (document.getElementById("txn-holder"))
       document.getElementById("txn-holder").value = currentUser.id || "";
 
@@ -765,14 +775,19 @@ function renderBenList(bens) {
   }
   el.innerHTML = bens
     .map((b, i) => {
-      const initials = (b.beneficiaryName || "B")
+      const initials = (b.beneficiaryName || "B" )
         .split(" ")
         .map((w) => w[0])
         .join("")
         .slice(0, 2)
         .toUpperCase();
       return `<div class="beneficiary-item">
-      <div class="avatar" style="width:40px;height:40px">${initials}</div>
+  <div class="avatar" style="width:40px;height:40px;overflow:hidden;">
+    ${b.profilePic
+      ? `<img src="${b.profilePic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
+      : initials
+    }
+  </div>
       <div class="ben-info">
         <div class="ben-name">${b.beneficiaryName || "—"}</div>
        
@@ -809,9 +824,7 @@ async function doAddBen() {
 
 async function removeBen(id) {
 
-  if (!confirm("Remove beneficiary?")) {
-    return;
-  }
+
 
   try {
 
@@ -858,10 +871,9 @@ async function removeBen(id) {
 // ─────────────────────────────────────────────
 async function loadProfile() {
   if (!currentUser) return;
-  // document.getElementById('profile-image').textContent = me.image||'—';
+
   document.getElementById("profile-name").textContent = currentUser.name || "—";
-  document.getElementById("profile-email").textContent =
-    currentUser.email || "—";
+  document.getElementById("profile-email").textContent = currentUser.email || "—";
   document.getElementById("upd-name").value = currentUser.name || "";
   document.getElementById("upd-email").value = currentUser.email || "";
 
@@ -869,24 +881,43 @@ async function loadProfile() {
   try {
     const r = await api("GET", "/api/v1/getusers");
     if (r.success && r.data) {
+      console.log('===>', r);
       const me = r.data.find(
         (u) => u._id === currentUser.id || u.email === currentUser.email,
+    
       );
       if (me) {
-        document.getElementById("profile-acc").textContent =
-          me.account_number || "—";
+        document.getElementById("profile-acc").textContent = me.account_number || "—";
         document.getElementById("profile-phone").textContent = me.phone || "—";
         document.getElementById("profile-role").textContent = me.role || "user";
         document.getElementById("profile-joined").textContent = me.createdAt
           ? new Date(me.createdAt).toLocaleDateString("en-IN", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          })
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
           : "—";
+
+        // ✅ Avatar — show image if exists, else show initials
+        const avatarEl = document.getElementById("profile-avatar");
+        if (avatarEl) {
+          if (me.profilePic) {
+            avatarEl.innerHTML = `<img src="${me.profilePic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+            const removeBtn = document.getElementById("remove-pic-btn");
+            if (removeBtn) removeBtn.style.display = "inline-flex";
+          } else {
+            const initials = (currentUser.name || "U")
+              .split(" ")
+              .map((w) => w[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase();
+            avatarEl.textContent = initials;
+          }
+        }
       }
     }
-  } catch { }
+  } catch {}
 }
 
 async function doUpdateProfile() {
@@ -911,6 +942,57 @@ async function doUpdateProfile() {
     } else toast(r.error || r.message, "error");
   } catch {
     toast("Cannot reach server", "error");
+  }
+}
+
+//================= upload profile pic ===========//
+
+async function uploadProfilePic(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append('profilePic', file);
+
+  try {
+    const res = await fetch(`/api/v1/${currentUser.id}/profile-pic`, {
+      method: 'PATCH',
+      headers: { 
+        'Authorization': 'Bearer ' + token  // use the same variable your app uses
+        // do NOT set Content-Type here — browser sets it automatically for FormData
+      },
+      body: formData
+    });
+    const data = await res.json();
+    if (data.success) {
+      currentUser.profilePic = data.data.profilePic;
+      location.reload();
+    } else {
+      alert(data.message || 'Upload failed');
+    }
+  } catch (err) {
+    alert('Upload error: ' + err.message);
+  }
+}
+
+async function removeProfilePic() {
+  if (!confirm('Remove your profile picture?')) return;
+
+  try {
+    const res = await fetch(`/api/v1/${currentUser.id}/profile-pic`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    });
+    const data = await res.json();
+    if (data.success) {
+      location.reload();
+    } else {
+      alert(data.message || 'Remove failed');
+    }
+  } catch (err) {
+    alert('Error: ' + err.message);
   }
 }
 
@@ -1028,8 +1110,10 @@ function renderAdminUsers(users) {
       <td>${u.isDeleted ? '<span class="status-deleted">Deleted</span>' : '<span class="status-active">Active</span>'}</td>
       <td>
          <button class="btn btn-outline btn-sm" onclick="adminViewUser('${u._id}')">View</button>
+         <button class="btn btn-warning btn-sm" onclick="openEditUserModal('${u._id}')">Edit</button>
 
-           ${u.isDeleted? `<button class="btn btn-success btn-sm" onclick="restoreUser('${u._id}')">Restore</button>`: ""}
+           ${u.isDeleted? `
+            <button class="btn btn-success btn-sm" onclick="restoreUser('${u._id}')">Restore</button>`: ""}
       </td>
     </tr> `).join("");
 }
